@@ -5,15 +5,57 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context="com.example.shawmori.gyroscopetest.MainActivity">
+    tools:context="com.example.shawmori.gyroscopetest.MainActivity"
+    tools:layout_editor_absoluteY="81dp"
+    tools:layout_editor_absoluteX="0dp">
 
     <TextView
+        android:id="@+id/gyroX"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Hello World!"
-        app:layout_constraintBottom_toBottomOf="parent"
+        android:text="@string/xDefault"
+        android:layout_marginTop="8dp"
+        app:layout_constraintTop_toBottomOf="@+id/countData"
+        android:layout_marginLeft="8dp"
+        app:layout_constraintLeft_toLeftOf="parent" />
+
+    <TextView
+        android:id="@+id/gyroY"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/yDefault"
+        android:layout_marginTop="7dp"
+        app:layout_constraintTop_toBottomOf="@+id/gyroX"
+        android:layout_marginLeft="8dp"
+        app:layout_constraintLeft_toLeftOf="parent" />
+
+    <TextView
+        android:id="@+id/gyroZ"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/zDefault"
+        android:layout_marginTop="8dp"
+        app:layout_constraintTop_toBottomOf="@+id/gyroY"
+        android:layout_marginLeft="8dp"
+        app:layout_constraintLeft_toLeftOf="parent" />
+
+    <TextView
+        android:id="@+id/countData"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="0"
+        tools:layout_editor_absoluteX="16dp"
+        app:layout_constraintTop_toTopOf="parent"
+        android:layout_marginTop="8dp" />
+
+    <Button
+        android:id="@+id/seeData"
+        android:layout_width="88dp"
+        android:layout_height="wrap_content"
+        android:text="See Data"
+        android:layout_marginLeft="50dp"
         app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintBottom_toBottomOf="parent"
+        android:layout_marginBottom="32dp" />
 
 </android.support.constraint.ConstraintLayout>

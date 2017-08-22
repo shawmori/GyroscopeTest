@@ -1,3 +1,6 @@
 <resources>
     <string name="app_name">GyroscopeTest</string>
+    <string name="xDefault">X: DEFAULT</string>
+    <string name="yDefault">Y: DEFAULT</string>
+    <string name="zDefault">Z: DEFAULT</string>
 </resources>
