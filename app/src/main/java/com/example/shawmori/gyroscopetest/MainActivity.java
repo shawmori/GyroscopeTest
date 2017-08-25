@@ -20,19 +20,23 @@ import java.util.Arrays;
 
 public class MainActivity extends AppCompatActivity implements SensorEventListener{
 
+    //UI elements
     private TextView gyroX, gyroY, gyroZ, countData;
     private Button seeData, toggle, clear, dataSizeOk;
     private EditText dataSizeChooser;
 
+    //Sensor elements
     private Sensor sensor;
     private SensorManager sm;
 
+    //Data variables
     private int dataSize = 100;
     private int count = 0;
     private Coordinate[] coordinates;
     private int toastShow = 1;
-
     private boolean sensorToggle = true;
+
+    //Debugging
     private static final String TAG = "MainActivity";
 
     @Override
@@ -138,6 +142,9 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
     }
 
+    /**
+     * Changes activity from MainActivity to DataActivity and sends the coordinates for the new activity to use
+     */
     public void seeDataActivity(){
         if(count != dataSize){
             Toast.makeText(getApplicationContext(), "Wait for data collection to finish before viewing.", Toast.LENGTH_LONG).show();
@@ -148,6 +155,9 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         }
     }
 
+    /**
+     * When the START/STOP button is pushed this method is called. It starts and stops the sensor.
+     */
     public void toggleSensor(){
         if(sensorToggle){
             sensorToggle = false;
@@ -158,6 +168,9 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         }
     }
 
+    /**
+     * Clears all stored data. Sensor must be stopped for it to work.
+     */
     public void clearData(){
         if (sensorToggle) {
             Toast.makeText(getApplicationContext(), "Stop sensor before clearing data!", Toast.LENGTH_SHORT).show();
@@ -167,6 +180,9 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         }
     }
 
+    /**
+     * Sets the size of the data storage array. Clears any previously stored data. Sensor must be stopped for it to work.
+     */
     public void setDataSize(){
         if (sensorToggle) {
             Toast.makeText(getApplicationContext(), "Stop sensor before resetting size!", Toast.LENGTH_SHORT).show();
@@ -178,6 +194,9 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         }
     }
 
+    /**
+     * Help method to reset the data.
+     */
     private void resetData(){
         count = 0;
         countData.setText("0");

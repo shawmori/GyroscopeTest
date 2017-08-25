@@ -3,7 +3,7 @@ package com.example.shawmori.gyroscopetest;
 import java.io.Serializable;
 
 /**
- * Created by Shaw Mori on 22-Aug-17.
+ * A coordinate class that stores x, y and z values.
  */
 public class Coordinate implements Serializable {
 

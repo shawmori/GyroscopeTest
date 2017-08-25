@@ -9,12 +9,14 @@ import org.w3c.dom.Text;
 
 public class DataActivity extends AppCompatActivity {
 
+    //Data storage
     private Coordinate[] coordinates;
     private int size;
 
     //Statistics
     private float xAv, yAv, zAv, xMin, xMax, yMin, yMax, zMin, zMax;
 
+    //UI Elements
     TextView averages, minMax;
 
     @Override
@@ -33,6 +35,9 @@ public class DataActivity extends AppCompatActivity {
         getMinMax();
     }
 
+    /**
+     * Sets the averages TextView to the averages of the coordinates
+     */
     public void getAverage(){
         float xTotal = 0;
         float yTotal = 0;
@@ -52,6 +57,9 @@ public class DataActivity extends AppCompatActivity {
                 "X Average: " + xAv + "\nY Average: " + yAv + "\nZ Average: " + zAv);
     }
 
+    /**
+     * Sets the minMax TextViews to the min and max of the data.
+     */
     public void getMinMax(){
         xMin = Float.MAX_VALUE;
         yMin = Float.MAX_VALUE;
