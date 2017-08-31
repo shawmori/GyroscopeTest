@@ -84,6 +84,6 @@ public class DataActivity extends AppCompatActivity {
                 zMax = coordinates[i].getZ();
         }
 
-        minMax.setText("Mins & Maxs\nX Minimum: " + xMin + "\nX Maximum: " + xMax + "\nY Minimum: " + yMin + "\nY Maximum: " + yMax + "\nZ Minimum: " + zMin + "\nZ Maximum: " + zMax);
+        minMax.setText("Mins & Maxs\nX Minimum: " + xMin + "\nX Maximum: " + xMax + "\n\nY Minimum: " + yMin + "\nY Maximum: " + yMax + "\n\nZ Minimum: " + zMin + "\nZ Maximum: " + zMax);
     }
 }
