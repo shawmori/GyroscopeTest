@@ -1,5 +1,6 @@
 package com.example.shawmori.gyroscopetest;
 
+import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.hardware.Sensor;
@@ -9,6 +10,7 @@ import android.hardware.SensorManager;
 import android.os.AsyncTask;
 import android.os.Process;
 import android.os.StrictMode;
+import android.os.Vibrator;
 import android.provider.Settings;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -25,9 +27,10 @@ import java.io.DataOutputStream;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.util.Arrays;
 
 
-public class MainActivity extends AppCompatActivity implements SensorEventListener{
+public class MainActivity extends AppCompatActivity implements SensorEventListener {
 
     //UI elements
     private TextView gyroX, gyroY, gyroZ, countData;
@@ -40,10 +43,15 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
     //Data variables
     private int dataSize = 100;
-    private int count = 0;
-    private Coordinate[] coordinates;
+    private int userCount = 0;
+    private Coordinate[] userCoordinates;
     private int toastShow = 1;
     private boolean sensorToggle = true;
+
+    private int badPostureCount = 0;
+    private int numDataItemsToAverage = 30;
+    private Coordinate[] localCoordinateData = new Coordinate[numDataItemsToAverage];
+    private int localCount = 0;
 
     //Debugging
     private static final String TAG = "MainActivity";
@@ -53,13 +61,13 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        coordinates = new Coordinate[dataSize];
+        userCoordinates = new Coordinate[dataSize];
 
         //Checks features that the phone has
         PackageManager packageManager = getPackageManager();
         boolean hasGyro = packageManager.hasSystemFeature(PackageManager.FEATURE_SENSOR_GYROSCOPE);
         boolean hasAcc = packageManager.hasSystemFeature(PackageManager.FEATURE_SENSOR_ACCELEROMETER);
-        Log.d(TAG, hasGyro+" ");
+        Log.d(TAG, hasGyro + " ");
 
         sm = (SensorManager) getSystemService(SENSOR_SERVICE);
 
@@ -67,21 +75,14 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
         StrictMode.setThreadPolicy(policy);
 
-        //Sets gyroscope first as this is what we really want
-        if(hasGyro) {
-            Log.d(TAG, "Gyroscope added");
-            sensor = sm.getDefaultSensor(Sensor.TYPE_GYROSCOPE);
-            sm.registerListener(this, sensor, SensorManager.SENSOR_DELAY_NORMAL);
-        }
-
         //If there is no gyroscope use accelerometer
-        else if(hasAcc){
+        if (hasAcc) {
             Log.d(TAG, "Acclerometer added");
             sensor = sm.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
             sm.registerListener(this, sensor, SensorManager.SENSOR_DELAY_NORMAL);
         }
         //Neither of these features show a toast
-        if(sensor == null){
+        if (sensor == null) {
             Log.d(TAG, "No sensor -- quit");
             Process.killProcess(Process.myPid());
         }
@@ -91,7 +92,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         gyroY = (TextView) findViewById(R.id.gyroY);
         gyroZ = (TextView) findViewById(R.id.gyroZ);
         seeData = (Button) findViewById(R.id.seeData);
-        clear = (Button)findViewById(R.id.clear);
+        clear = (Button) findViewById(R.id.clear);
         toggle = (Button) findViewById(R.id.toggle);
         dataSizeChooser = (EditText) findViewById(R.id.dataSizeChooser);
         dataSizeOk = (Button) findViewById(R.id.dataSizeOk);
@@ -132,30 +133,69 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     @Override
     public void onSensorChanged(SensorEvent sensorEvent) {
         //Boolean to toggle the sensor
-        if(sensorToggle) {
+        if (sensorToggle) {
 
             float x = sensorEvent.values[0];
             float y = sensorEvent.values[1];
             float z = sensorEvent.values[2];
 
-            countData.setText("Items Stored: " + count);
+            countData.setText("Items Stored: " + userCount);
             gyroX.setText(String.valueOf(x));
             gyroY.setText(String.valueOf(y));
             gyroZ.setText(String.valueOf(z));
 
             //When data is full display toast and stop more data being added.
-            //toastShow ensures toast only shows once.
+            //toastShow ensures toast only shows once. Used for debugging, very little user use.
             if (toastShow == 1) {
-                if (count == dataSize) {
+                if (userCount == dataSize) {
                     Toast.makeText(getApplicationContext(), "Data entry complete.\n" + dataSize + " pieces of data added.", Toast.LENGTH_SHORT).show();
                     toastShow = 0;
                 } else {
                     Coordinate coord = new Coordinate(x, y, z);
-                    coordinates[count] = coord;
-                    count++;
+                    userCoordinates[userCount] = coord;
+                    userCount++;
                 }
             }
 
+
+
+            //Actual implementation
+           if (badPostureCount == 5) {
+                sendPostureEvent();
+                badPostureCount = 0;
+            } else if (localCount % numDataItemsToAverage == 0 && localCount != 0) {
+                int currentCount = localCount;
+                Log.d(TAG, "Bad posture count: " + badPostureCount);
+                getZAverage(Arrays.copyOfRange(localCoordinateData, currentCount - numDataItemsToAverage, currentCount));
+            }
+            if (localCount == numDataItemsToAverage) {
+                localCoordinateData = new Coordinate[numDataItemsToAverage];
+                localCount = 0;
+            }
+                localCoordinateData[localCount] = new Coordinate(x, y, z);
+                localCount++;
+        }
+    }
+
+    private void sendPostureEvent() {
+        Vibrator v = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
+        v.vibrate(1500);
+        Toast.makeText(getApplicationContext(), "Bad Posture", Toast.LENGTH_LONG).show();
+    }
+
+    private void getZAverage(Coordinate[] coordinates) {
+        float zAv = 0;
+
+        for (Coordinate c : coordinates) {
+            zAv += c.getZ();
+        }
+
+        zAv = zAv / numDataItemsToAverage;
+
+        if (zAv < 1 || zAv > 5) {
+            badPostureCount++;
+        } else {
+            badPostureCount = 0;
         }
     }
 
@@ -165,14 +205,14 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     }
 
     /**
-     * Changes activity from MainActivity to DataActivity and sends the coordinates for the new activity to use
+     * Changes activity from MainActivity to DataActivity and sends the userCoordinates for the new activity to use
      */
-    public void seeDataActivity(){
-        if(count != dataSize){
+    public void seeDataActivity() {
+        if (userCount != dataSize) {
             Toast.makeText(getApplicationContext(), "Wait for data collection to finish before viewing.", Toast.LENGTH_LONG).show();
-        }else {
+        } else {
             Intent i = new Intent(this, DataActivity.class);
-            i.putExtra("data", coordinates);
+            i.putExtra("data", userCoordinates);
             startActivity(i);
         }
     }
@@ -180,11 +220,11 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     /**
      * When the START/STOP button is pushed this method is called. It starts and stops the sensor.
      */
-    public void toggleSensor(){
-        if(sensorToggle){
+    public void toggleSensor() {
+        if (sensorToggle) {
             sensorToggle = false;
             toggle.setText("START");
-        }else{
+        } else {
             sensorToggle = true;
             toggle.setText("STOP");
         }
@@ -193,34 +233,34 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     /**
      * Clears all stored data. Sensor must be stopped for it to work.
      */
-    public void clearData(){
+    public void clearData() {
         if (sensorToggle) {
             Toast.makeText(getApplicationContext(), "Stop sensor before clearing data!", Toast.LENGTH_SHORT).show();
-        }else{
+        } else {
             resetData();
-            coordinates = new Coordinate[dataSize];
+            userCoordinates = new Coordinate[dataSize];
         }
     }
 
     /**
      * Sets the size of the data storage array. Clears any previously stored data. Sensor must be stopped for it to work.
      */
-    public void setDataSize(){
+    public void setDataSize() {
         if (sensorToggle) {
             Toast.makeText(getApplicationContext(), "Stop sensor before resetting size!", Toast.LENGTH_SHORT).show();
-        }else{
+        } else {
             dataSize = Integer.parseInt(dataSizeChooser.getText().toString());
             dataSizeChooser.setText("");
             resetData();
-            coordinates = new Coordinate[dataSize];
+            userCoordinates = new Coordinate[dataSize];
         }
     }
 
     /**
      * Helper method to reset the data.
      */
-    private void resetData(){
-        count = 0;
+    private void resetData() {
+        userCount = 0;
         countData.setText("0");
         toastShow = 1;
     }
@@ -231,6 +271,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             Log.d(TAG, "doInBackground...");
             return POST(urls[0]);
         }
+
         @Override
         protected void onPostExecute(String result) {
 
@@ -251,7 +292,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             urlConnection.setDoInput(true);
             urlConnection.setDoOutput(true);
             Log.d(TAG, "URL connections established");
-            outputStream= new DataOutputStream(urlConnection.getOutputStream());
+            outputStream = new DataOutputStream(urlConnection.getOutputStream());
             Log.d(TAG, "after output");
 
             Log.d(TAG, "Stream and BW");
@@ -291,7 +332,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                 if (outputStream != null) {
                     outputStream.close();
                 }
-            } catch (Exception e){
+            } catch (Exception e) {
                 e.printStackTrace();
             }
         }

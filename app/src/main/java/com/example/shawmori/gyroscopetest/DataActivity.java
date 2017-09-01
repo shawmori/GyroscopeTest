@@ -53,8 +53,14 @@ public class DataActivity extends AppCompatActivity {
         yAv = yTotal / size;
         zAv = zTotal / size;
 
-        averages.setText("Averages:\n" +
-                "X Average: " + xAv + "\nY Average: " + yAv + "\nZ Average: " + zAv);
+       // averages.setText("Averages:\n" +
+       //         "X Average: " + xAv + "\nY Average: " + yAv + "\nZ Average: " + zAv);
+
+        String values = "";
+        for (Coordinate c : coordinates) {
+            values += "x: " + c.getX() + "\t" + "y: " + c.getX() + "\t" + "z: " + c.getZ() + "\n";
+        }
+        averages.setText(values);
     }
 
     /**
@@ -84,6 +90,6 @@ public class DataActivity extends AppCompatActivity {
                 zMax = coordinates[i].getZ();
         }
 
-        minMax.setText("Mins & Maxs\nX Minimum: " + xMin + "\nX Maximum: " + xMax + "\n\nY Minimum: " + yMin + "\nY Maximum: " + yMax + "\n\nZ Minimum: " + zMin + "\nZ Maximum: " + zMax);
+     //   minMax.setText("Mins & Maxs\nX Minimum: " + xMin + "\nX Maximum: " + xMax + "\n\nY Minimum: " + yMin + "\nY Maximum: " + yMax + "\n\nZ Minimum: " + zMin + "\nZ Maximum: " + zMax);
     }
 }
