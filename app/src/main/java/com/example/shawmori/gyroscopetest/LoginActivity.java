@@ -41,6 +41,7 @@ public class LoginActivity extends AppCompatActivity {
         if (username.equalsIgnoreCase(defaultUser) && password.equals(defaultPass)) {
             Intent i = new Intent(this, BLEActivity.class);
             startActivity(i);
+            finish();
         }
         else{
             Toast.makeText(getApplicationContext(), "Incorrect username or password", Toast.LENGTH_LONG);

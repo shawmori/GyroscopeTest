@@ -37,7 +37,6 @@ public class BLEActivity extends AppCompatActivity implements View.OnClickListen
     ListView listView;
 
     private Button btnScan;
-    private TextView tvMac, tvRssi, tvName;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -68,12 +67,10 @@ public class BLEActivity extends AppCompatActivity implements View.OnClickListen
             public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
                 Intent mIntent = new Intent(BLEActivity.this, MainActivity.class);
                 startActivity(mIntent);
+                finish();
             }
         });
 
-        tvMac = (TextView) findViewById(R.id.tvMac);
-        tvName = (TextView) findViewById(R.id.tvName);
-        tvRssi = (TextView) findViewById(R.id.tvRssi);
     }
 
     @Override
