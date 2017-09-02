@@ -265,6 +265,8 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         toastShow = 1;
     }
 
+
+
     private class HttpAsyncTask extends AsyncTask<String, Void, String> {
         @Override
         protected String doInBackground(String... urls) {

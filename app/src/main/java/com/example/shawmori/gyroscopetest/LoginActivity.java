@@ -14,8 +14,8 @@ public class LoginActivity extends AppCompatActivity {
     private Button login;
 
     private String username, password = null;
-    private String defaultUser = "shaw";
-    private String defaultPass = "123";
+    private String defaultUser = "name";
+    private String defaultPass = "";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -39,7 +39,7 @@ public class LoginActivity extends AppCompatActivity {
         password = passwordField.getText().toString();
 
         if (username.equalsIgnoreCase(defaultUser) && password.equals(defaultPass)) {
-            Intent i = new Intent(this, MainActivity.class);
+            Intent i = new Intent(this, BLEActivity.class);
             startActivity(i);
         }
         else{
