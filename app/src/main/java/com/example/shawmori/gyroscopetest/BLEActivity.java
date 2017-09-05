@@ -65,6 +65,7 @@ public class BLEActivity extends AppCompatActivity implements View.OnClickListen
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
+                Toast.makeText(getApplicationContext(), "Connected to " + mBluetoothList.get(i).getName(), Toast.LENGTH_LONG).show();
                 Intent mIntent = new Intent(BLEActivity.this, MainActivity.class);
                 startActivity(mIntent);
                 finish();
