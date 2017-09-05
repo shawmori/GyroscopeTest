@@ -23,6 +23,7 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
@@ -67,6 +68,7 @@ public class BLEActivity extends AppCompatActivity implements View.OnClickListen
             public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
                 Toast.makeText(getApplicationContext(), "Connected to " + mBluetoothList.get(i).getName(), Toast.LENGTH_LONG).show();
                 Intent mIntent = new Intent(BLEActivity.this, MainActivity.class);
+                mIntent.putExtra("Address", mBluetoothList.get(i).getAddress());
                 startActivity(mIntent);
                 finish();
             }
@@ -218,7 +220,7 @@ public class BLEActivity extends AppCompatActivity implements View.OnClickListen
         mScanner.stop();
     }
 
-    private class BleDevice {
+    private class BleDevice implements Serializable{
 
         private BluetoothDevice device;
         private int rssi;

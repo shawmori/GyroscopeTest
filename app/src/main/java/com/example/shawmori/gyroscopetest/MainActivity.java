@@ -27,7 +27,10 @@ import java.io.DataOutputStream;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.Arrays;
+import java.util.Date;
 
 
 public class MainActivity extends AppCompatActivity implements SensorEventListener {
@@ -40,6 +43,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     //Sensor elements
     private Sensor sensor;
     private SensorManager sm;
+    private String macAddress;
 
     //Data variables
     private int dataSize = 100;
@@ -48,10 +52,13 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     private int toastShow = 1;
     private boolean sensorToggle = true;
 
+    private String url = "http://192.168.88.155:8081/post";
     private int badPostureCount = 0;
     private int numDataItemsToAverage = 30;
     private Coordinate[] localCoordinateData = new Coordinate[numDataItemsToAverage];
     private int localCount = 0;
+
+    private Date startTime;
 
     //Debugging
     private static final String TAG = "MainActivity";
@@ -62,6 +69,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         setContentView(R.layout.activity_main);
 
         userCoordinates = new Coordinate[dataSize];
+        macAddress = getIntent().getSerializableExtra("Address").toString();
 
         //Checks features that the phone has
         PackageManager packageManager = getPackageManager();
@@ -75,13 +83,13 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
         StrictMode.setThreadPolicy(policy);
 
-        //If there is no gyroscope use accelerometer
+        //Initialise accelerometer if there is one
         if (hasAcc) {
-            Log.d(TAG, "Acclerometer added");
+            Log.d(TAG, "Accelerometer added");
             sensor = sm.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
             sm.registerListener(this, sensor, SensorManager.SENSOR_DELAY_NORMAL);
         }
-        //Neither of these features show a toast
+        //Neither of these features show a toast and quit
         if (sensor == null) {
             Log.d(TAG, "No sensor -- quit");
             Process.killProcess(Process.myPid());
@@ -101,7 +109,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             @Override
             public void onClick(View view) {
                 Log.d(TAG, "Button pressed...");
-                new HttpAsyncTask().execute("http://192.168.88.155:8081/post");
+                new HttpAsyncTask().execute(url);
             }
         });
         toggle.setOnClickListener(new View.OnClickListener() {
@@ -158,16 +166,19 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             }
 
 
-
             //Actual implementation
-           if (badPostureCount == 5) {
+            if (badPostureCount == 5) {
+                triggerPostureEvent();
                 sendPostureEvent();
                 badPostureCount = 0;
-            } else if (localCount % numDataItemsToAverage == 0 && localCount != 0) {
-                int currentCount = localCount;
-                Log.d(TAG, "Bad posture count: " + badPostureCount);
-                getZAverage(Arrays.copyOfRange(localCoordinateData, currentCount - numDataItemsToAverage, currentCount));
             }
+            //Get a copy of the array of data and average it every time the data reaches the desired size
+            else if (localCount % numDataItemsToAverage == 0 && localCount != 0) {
+                    int currentCount = localCount;
+                    Log.d(TAG, "Bad posture count: " + badPostureCount);
+                    getZAverage(Arrays.copyOfRange(localCoordinateData, currentCount - numDataItemsToAverage, currentCount));
+                }
+            //Reset the local storage
             if (localCount == numDataItemsToAverage) {
                 localCoordinateData = new Coordinate[numDataItemsToAverage];
                 localCount = 0;
@@ -177,22 +188,31 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         }
     }
 
-    private void sendPostureEvent() {
+    private void triggerPostureEvent(){
         Vibrator v = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
         v.vibrate(1500);
         Toast.makeText(getApplicationContext(), "Bad Posture", Toast.LENGTH_LONG).show();
+    }
+
+    private void sendPostureEvent() {
+        new HttpAsyncTask().execute(url);
     }
 
     private void getZAverage(Coordinate[] coordinates) {
         float zAv = 0;
 
         for (Coordinate c : coordinates) {
-            zAv += c.getZ();
+            if(c.getZ() > -7 || c.getZ() < 7)
+                zAv += c.getZ();
         }
 
         zAv = zAv / numDataItemsToAverage;
 
-        if (zAv < 1 || zAv > 5) {
+        if (zAv < -2 || zAv > 4) {
+            //Start timer for amount of time in bad posture
+            if (badPostureCount == 0) {
+                startTime = new Date();
+            }
             badPostureCount++;
         } else {
             badPostureCount = 0;
@@ -223,6 +243,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     public void toggleSensor() {
         if (sensorToggle) {
             sensorToggle = false;
+            badPostureCount = 0;
             toggle.setText("START");
         } else {
             sensorToggle = true;
@@ -305,10 +326,15 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             String id = Settings.Secure.getString(getContentResolver(), Settings.Secure.ANDROID_ID);
 
             JSONObject data = new JSONObject();
-            data.put("task", id);
-            data.put("x", 1);
-            data.put("y", 2);
-            data.put("z", 3);
+            data.put("Mac Address", macAddress);
+            DateFormat df = new SimpleDateFormat("HH:mm:ss");
+            String time = df.format(new Date());
+            data.put("Time", time);
+            df = new SimpleDateFormat("yyyy-MM-dd");
+            String date = df.format(new Date());
+            data.put("Date", date);
+            long lengthBad = (new Date().getTime() - startTime.getTime()) / 1000;
+            data.put("Length", lengthBad);
 
             Log.d(TAG, "Sending:" + data);
 
