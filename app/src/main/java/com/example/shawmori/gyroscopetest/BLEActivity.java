@@ -4,6 +4,7 @@ import android.Manifest;
 import android.app.Activity;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
+import android.bluetooth.BluetoothGatt;
 import android.bluetooth.BluetoothManager;
 import android.content.Context;
 import android.content.Intent;
@@ -31,10 +32,14 @@ public class BLEActivity extends AppCompatActivity implements View.OnClickListen
 
     private Map<String, BleDevice> mBluetoothMap;
     private ArrayList<BleDevice> mBluetoothList;
-    BleScanner mScanner;
+    private BleScanner mScanner;
 
-    BleListAdapter listAdapter;
-    ListView listView;
+    private BleListAdapter listAdapter;
+    private ListView listView;
+
+    private BluetoothGatt mGatt;
+    private BluetoothDevice mDevice;
+    private BluetoothAdapter mAdapter;
 
     private Button btnScan;
 
@@ -65,8 +70,10 @@ public class BLEActivity extends AppCompatActivity implements View.OnClickListen
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
+                mDevice = mAdapter.getRemoteDevice(mBluetoothList.get(i).getAddress());
                 Toast.makeText(getApplicationContext(), "Connected to " + mBluetoothList.get(i).getName(), Toast.LENGTH_LONG).show();
                 Intent mIntent = new Intent(BLEActivity.this, MainActivity.class);
+                mIntent.putExtra("device", mDevice);
                 startActivity(mIntent);
                 finish();
             }
@@ -110,7 +117,6 @@ public class BLEActivity extends AppCompatActivity implements View.OnClickListen
         private final String TAG = "BLEActivity";
 
         private BLEActivity mainActivity;
-        private BluetoothAdapter mBluetoothAdapter;
         private boolean mScanning;
         private Handler mHandler;
 
@@ -126,7 +132,7 @@ public class BLEActivity extends AppCompatActivity implements View.OnClickListen
             final BluetoothManager bluetoothManager =
                     (BluetoothManager) mainActivity.getSystemService(Context.BLUETOOTH_SERVICE);
 
-            mBluetoothAdapter = bluetoothManager.getAdapter();
+            mAdapter = bluetoothManager.getAdapter();
         }
 
         public boolean isScanning(){
@@ -134,7 +140,7 @@ public class BLEActivity extends AppCompatActivity implements View.OnClickListen
         }
 
         public void start(){
-            if (mBluetoothAdapter == null || !mBluetoothAdapter.isEnabled()) {
+            if (mAdapter == null || !mAdapter.isEnabled()) {
                 Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
                 startActivityForResult(enableBtIntent, 1);
                 mainActivity.stopScan();
@@ -159,14 +165,14 @@ public class BLEActivity extends AppCompatActivity implements View.OnClickListen
                         Toast.makeText(getApplicationContext(), "Stopping BLE Scanner...", Toast.LENGTH_LONG).show();
 
                         mScanning = false;
-                        mBluetoothAdapter.stopLeScan(mLeScanCallback);
+                        mAdapter.stopLeScan(mLeScanCallback);
 
                         mainActivity.stopScan();
                     }
                 }, scanPeriod);
 
                 mScanning = true;
-                mBluetoothAdapter.startLeScan(mLeScanCallback);
+                mAdapter.startLeScan(mLeScanCallback);
             }
         }
 
@@ -216,21 +222,6 @@ public class BLEActivity extends AppCompatActivity implements View.OnClickListen
     private void stopScan() {
         btnScan.setText("Start Scanning");
         mScanner.stop();
-    }
-
-    private class BleDevice {
-
-        private BluetoothDevice device;
-        private int rssi;
-
-        public BleDevice(BluetoothDevice device, int rssi) {
-            this.device = device;
-            this.rssi = rssi;
-        }
-        public String getAddress(){return device.getAddress();}
-        public String getName(){return device.getName();}
-        public void setRssi(int i){this.rssi = i;}
-        public int getRssi(){return rssi;}
     }
 
     public class BleListAdapter extends ArrayAdapter<BleDevice> {

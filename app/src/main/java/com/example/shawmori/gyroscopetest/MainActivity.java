@@ -1,5 +1,11 @@
 package com.example.shawmori.gyroscopetest;
 
+import android.bluetooth.BluetoothDevice;
+import android.bluetooth.BluetoothGatt;
+import android.bluetooth.BluetoothGattCallback;
+import android.bluetooth.BluetoothGattCharacteristic;
+import android.bluetooth.BluetoothGattDescriptor;
+import android.bluetooth.BluetoothGattService;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -28,6 +34,7 @@ import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.Arrays;
+import java.util.UUID;
 
 
 public class MainActivity extends AppCompatActivity implements SensorEventListener {
@@ -48,6 +55,13 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     private int toastShow = 1;
     private boolean sensorToggle = true;
 
+    private BluetoothDevice mDevice;
+    private BluetoothGatt mGatt;
+    private BluetoothGattCharacteristic mCharacteristic;
+    private BluetoothGattDescriptor mDescriptor;
+
+    private static final UUID mUuid = UUID.fromString("06E40002-B5A3-F393-E0A9-E50E24DCCA9E");
+
     private int badPostureCount = 0;
     private int numDataItemsToAverage = 30;
     private Coordinate[] localCoordinateData = new Coordinate[numDataItemsToAverage];
@@ -60,6 +74,20 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        if(getIntent().getExtras() != null) {
+            mDevice = getIntent().getParcelableExtra("device");
+        }
+        mGatt = mDevice.connectGatt(this, false, mGattCallback);
+        mGatt.discoverServices();
+        mCharacteristic = findCharacteristic();
+        //mGatt.setCharacteristicNotification(mCharacteristic, true);
+        //mDescriptor = mCharacteristic.getDescriptor(mUuid);
+        //mDescriptor.setValue(BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE);
+      //  mGatt.writeDescriptor(mDescriptor);
+        //if(readCharacteristic()){
+           // Log.d(TAG, "Reading characteristics");
+       // }
+
 
         userCoordinates = new Coordinate[dataSize];
 
@@ -130,6 +158,58 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         });
     }
 
+    private boolean readCharacteristic() {
+        if (mGatt != null) {
+            return mGatt.readCharacteristic(mCharacteristic);
+        }
+        return false;
+    }
+
+    public BluetoothGattCharacteristic findCharacteristic() {
+        Log.d(TAG, "IN METHOD!@#!@#!@#!@#!@#");
+        if (mGatt == null) {
+            Log.d(TAG, "NULL");
+            return null;
+        }
+
+        for (BluetoothGattService service : mGatt.getServices()) {
+            Log.d(TAG, service.getUuid().toString());
+            BluetoothGattCharacteristic charac = service.getCharacteristic(mUuid);
+
+        }
+        return null;
+    }
+
+    private final BluetoothGattCallback mGattCallback = new BluetoothGattCallback() {
+        @Override
+        public void onConnectionStateChange(BluetoothGatt gatt, int status, int newState) {
+            super.onConnectionStateChange(gatt, status, newState);
+        }
+
+        @Override
+        public void onServicesDiscovered(BluetoothGatt gatt, int status) {
+            if (status == BluetoothGatt.GATT_SUCCESS) {
+                Log.d(TAG, "Successfully connected to GATT");
+            }else{
+                Log.d(TAG, "FAILED TO GATYTY");
+            }
+        }
+
+        @Override
+        public void onCharacteristicRead(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic, int status) {
+            Log.d(TAG, "In onCharacteristRead");
+        }
+
+        @Override
+        public void onCharacteristicChanged(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic) {
+            super.onCharacteristicChanged(gatt, characteristic);
+        }
+
+        @Override
+        public void onDescriptorRead(BluetoothGatt gatt, BluetoothGattDescriptor descriptor, int status) {
+            super.onDescriptorRead(gatt, descriptor, status);
+        }
+    };
     @Override
     public void onSensorChanged(SensorEvent sensorEvent) {
         //Boolean to toggle the sensor
