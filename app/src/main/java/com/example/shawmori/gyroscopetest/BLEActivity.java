@@ -13,6 +13,7 @@ import android.os.Handler;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -54,6 +55,10 @@ public class BLEActivity extends AppCompatActivity implements View.OnClickListen
         btnScan = (Button) findViewById(R.id.btnScan);
         btnScan.setOnClickListener(this);
 
+        Toolbar myToolbar = (Toolbar) findViewById(R.id.my_toolbar);
+        setSupportActionBar(myToolbar);
+        setTitle("Scan for Device");
+
         //Check device is BLE capable
         if (!getPackageManager().hasSystemFeature(PackageManager.FEATURE_BLUETOOTH_LE)) {
             Toast.makeText(getApplicationContext(), "Your device does not support BLE!", Toast.LENGTH_SHORT).show();
@@ -73,7 +78,6 @@ public class BLEActivity extends AppCompatActivity implements View.OnClickListen
                 mDevice = mAdapter.getRemoteDevice(mBluetoothList.get(i).getAddress());
                 Toast.makeText(getApplicationContext(), "Connected to " + mBluetoothList.get(i).getName(), Toast.LENGTH_LONG).show();
                 Intent mIntent = new Intent(BLEActivity.this, MainActivity.class);
-                mIntent.putExtra("device", mDevice);
                 startActivity(mIntent);
                 finish();
             }
