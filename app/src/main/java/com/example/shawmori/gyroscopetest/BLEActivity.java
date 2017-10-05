@@ -38,8 +38,8 @@ public class BLEActivity extends AppCompatActivity implements View.OnClickListen
     private BleListAdapter listAdapter;
     private ListView listView;
 
-    private BluetoothGatt mGatt;
-    private BluetoothDevice mDevice;
+    private String username = "";
+
     private BluetoothAdapter mAdapter;
 
     private Button btnScan;
@@ -51,6 +51,9 @@ public class BLEActivity extends AppCompatActivity implements View.OnClickListen
 
         mBluetoothList = new ArrayList<>();
         mBluetoothMap = new HashMap<>();
+
+        username = getIntent().getStringExtra("user");
+        Log.d("123123", username);
 
         btnScan = (Button) findViewById(R.id.btnScan);
         btnScan.setOnClickListener(this);
@@ -75,9 +78,9 @@ public class BLEActivity extends AppCompatActivity implements View.OnClickListen
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
-                mDevice = mAdapter.getRemoteDevice(mBluetoothList.get(i).getAddress());
                 Toast.makeText(getApplicationContext(), "Connected to " + mBluetoothList.get(i).getName(), Toast.LENGTH_LONG).show();
-                Intent mIntent = new Intent(BLEActivity.this, MainActivity.class);
+                Intent mIntent = new Intent(BLEActivity.this, Main2Activity.class);
+                mIntent.putExtra("user", username);
                 startActivity(mIntent);
                 finish();
             }

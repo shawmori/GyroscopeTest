@@ -55,11 +55,6 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     private int toastShow = 1;
     private boolean sensorToggle = true;
 
-    private BluetoothDevice mDevice;
-    private BluetoothGatt mGatt;
-    private BluetoothGattCharacteristic mCharacteristic;
-    private BluetoothGattDescriptor mDescriptor;
-
     private int badPostureCount = 0;
     private int numDataItemsToAverage = 30;
     private Coordinate[] localCoordinateData = new Coordinate[numDataItemsToAverage];
