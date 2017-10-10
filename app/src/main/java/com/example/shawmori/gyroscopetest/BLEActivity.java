@@ -53,7 +53,6 @@ public class BLEActivity extends AppCompatActivity implements View.OnClickListen
         mBluetoothMap = new HashMap<>();
 
         username = getIntent().getStringExtra("user");
-        Log.d("123123", username);
 
         btnScan = (Button) findViewById(R.id.btnScan);
         btnScan.setOnClickListener(this);

@@ -23,7 +23,7 @@ public class LoginActivity extends AppCompatActivity {
     private Button login;
 
     private String username, password = null;
-    private String mUrl = "http://130.195.6.134:8081/CheckUser";
+    private String mUrl = "https://sigbackontrack.herokuapp.com/CheckUser";
 
     private final String TAG = "LoginActivity";
 
